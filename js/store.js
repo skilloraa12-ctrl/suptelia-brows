@@ -1,6 +1,6 @@
 // Сховище даних. Два режими:
 //  • локальний (тест): localStorage у браузері;
-//  • Supabase: таблиці settings, posts, reviews і бакет posts (див. supabase/schema.sql).
+//  • Supabase: таблиці suptelia_settings, suptelia_posts, suptelia_reviews і бакет suptelia-posts (див. supabase/schema.sql).
 (function () {
   const C = window.SITE_CONFIG;
   const DEFAULTS = {
@@ -55,37 +55,37 @@
   const remote = {
     mode: 'supabase',
     async getSettings() {
-      const rows = must(await sb.from('settings').select('key,value'));
+      const rows = must(await sb.from('suptelia_settings').select('key,value'));
       const m = Object.fromEntries(rows.map((r) => [r.key, r.value]));
       return { price: m.price || DEFAULTS.price, about: m.about || DEFAULTS.about };
     },
     async saveSettings(patch) {
       const rows = Object.entries(patch).map(([key, value]) => ({ key, value }));
-      must(await sb.from('settings').upsert(rows));
+      must(await sb.from('suptelia_settings').upsert(rows));
     },
     async getPosts() {
-      return must(await sb.from('posts').select('id,type,image_url,created_at').order('created_at', { ascending: false }))
+      return must(await sb.from('suptelia_posts').select('id,type,image_url,created_at').order('created_at', { ascending: false }))
         .map((p) => ({ id: p.id, type: p.type, src: p.image_url, path: p.image_url }));
     },
     async addPost(type, blob) {
       const path = `${type}/${Date.now()}.jpg`;
-      must(await sb.storage.from('posts').upload(path, blob, { contentType: 'image/jpeg' }));
-      const url = sb.storage.from('posts').getPublicUrl(path).data.publicUrl;
-      must(await sb.from('posts').insert({ type, image_url: url, storage_path: path }));
+      must(await sb.storage.from('suptelia-posts').upload(path, blob, { contentType: 'image/jpeg' }));
+      const url = sb.storage.from('suptelia-posts').getPublicUrl(path).data.publicUrl;
+      must(await sb.from('suptelia_posts').insert({ type, image_url: url, storage_path: path }));
     },
     async deletePost(id) {
-      const row = must(await sb.from('posts').select('storage_path').eq('id', id).single());
-      if (row && row.storage_path) await sb.storage.from('posts').remove([row.storage_path]);
-      must(await sb.from('posts').delete().eq('id', id));
+      const row = must(await sb.from('suptelia_posts').select('storage_path').eq('id', id).single());
+      if (row && row.storage_path) await sb.storage.from('suptelia-posts').remove([row.storage_path]);
+      must(await sb.from('suptelia_posts').delete().eq('id', id));
     },
     async getReviews(all) {
-      let q = sb.from('reviews').select('*').order('created_at', { ascending: false });
+      let q = sb.from('suptelia_reviews').select('*').order('created_at', { ascending: false });
       if (!all) q = q.eq('status', 'approved');
       return must(await q);
     },
-    async addReview(rv) { must(await sb.from('reviews').insert({ name: rv.name, rating: rv.rating, service: rv.service, text: rv.text })); },
-    async setReviewStatus(id, status) { must(await sb.from('reviews').update({ status }).eq('id', id)); },
-    async deleteReview(id) { must(await sb.from('reviews').delete().eq('id', id)); },
+    async addReview(rv) { must(await sb.from('suptelia_reviews').insert({ name: rv.name, rating: rv.rating, service: rv.service, text: rv.text })); },
+    async setReviewStatus(id, status) { must(await sb.from('suptelia_reviews').update({ status }).eq('id', id)); },
+    async deleteReview(id) { must(await sb.from('suptelia_reviews').delete().eq('id', id)); },
     loginLabel: 'Пошта',
     async signIn(email, pass) {
       const { error } = await sb.auth.signInWithPassword({ email: email.trim(), password: pass });

@@ -40,10 +40,11 @@ Settings → Pages → Source: **Deploy from a branch** → гілка `main`, �
 
 ## Підключення Supabase
 
-1. Створіть проєкт на [supabase.com](https://supabase.com).
-2. SQL Editor → вставте вміст `supabase/schema.sql` → Run.
-3. Authentication → Users → Add user: пошта `margoesterhazi@gmail.com` і пароль. Supabase надішле лист для підтвердження пошти.
-4. Authentication → Sign In / Providers → вимкніть **Allow new users to sign up**, щоб ніхто інший не міг зареєструватися. Права адміна в базі однаково має тільки ця пошта.
-5. Project Settings → API: скопіюйте **Project URL** і **anon public key** у `js/config.js`.
+Сайт можна додати і в окремий проєкт, і в уже наявний: усі таблиці мають префікс `suptelia_`, а бакет для фото називається `suptelia-posts`, тож вони не змішаються з іншими даними.
+
+1. Відкрийте проєкт на [supabase.com](https://supabase.com). Якщо він на паузі, натисніть **Resume project**.
+2. SQL Editor → вставте вміст `supabase/schema.sql` → Run. Файл можна запускати повторно, він нічого не зламає.
+3. Authentication → Users → Add user: пошта `margoesterhazi@gmail.com` і пароль. Пошту треба підтвердити: адміном сайту вважається тільки користувач з підтвердженою поштою.
+4. Project Settings → API: скопіюйте **Project URL** і **anon public key** у `js/config.js`.
 
 Після цього публікації, прайс і відгуки зберігаються в базі, і всі відвідувачі бачать однакові дані.

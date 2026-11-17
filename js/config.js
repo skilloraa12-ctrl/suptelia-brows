@@ -2,10 +2,10 @@
 window.SITE_CONFIG = {
   // Supabase: вставте сюди Project URL і anon public key з Supabase → Project Settings → API.
   // Поки поля порожні, сайт працює в тестовому режимі і зберігає дані лише в цьому браузері.
-  supabaseUrl: '',
-  supabaseAnonKey: '',
+  supabaseUrl: 'https://rheeoeeewtucppooyvcb.supabase.co',
+  supabaseAnonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJoZWVvZWVld3R1Y3Bwb295dmNiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkzNzY4NjAsImV4cCI6MjEwNDk1Mjg2MH0.T71YSk30WySY1IgBWByN85mh9wZGe4VbOighXkSd3Eo',
 
-  // Тестовий вхід в адмінку (працює тільки без Supabase).
+  // Тестовий вхід (діє лише коли поля Supabase порожні). Зараз вхід через пошту власниці.
   testLogin: 'admin',
   testPassword: 'admin',
 

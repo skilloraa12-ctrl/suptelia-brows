@@ -42,10 +42,7 @@
     async setReviewStatus(id, status) { const d = read(); (d.reviews || []).forEach((r) => { if (r.id == id) r.status = status; }); write(d); },
     async deleteReview(id) { const d = read(); d.reviews = (d.reviews || []).filter((r) => r.id != id); write(d); },
     loginLabel: 'Логін',
-    async signIn(user, pass) {
-      if (user.trim() === C.testLogin && pass === C.testPassword) { try { sessionStorage.setItem(SESSION, '1'); } catch (e) {} return; }
-      throw new Error('Невірний логін або пароль. Перевірте і спробуйте ще раз.');
-    },
+    async signIn() { throw new Error('Вхід в адмінку працює лише з підключеним Supabase (js/config.js).'); },
     async isSignedIn() { try { return sessionStorage.getItem(SESSION) === '1'; } catch (e) { return false; } },
     async signOut() { try { sessionStorage.removeItem(SESSION); } catch (e) {} },
   };

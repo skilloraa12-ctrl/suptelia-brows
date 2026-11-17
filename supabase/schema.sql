@@ -31,14 +31,14 @@ create table if not exists public.suptelia_posts (
   created_at   timestamptz not null default now()
 );
 
--- Відгуки клієнток. Нові відгуки чекають на перевірку.
+-- Відгуки клієнток. 3–5 зірок публікуються одразу, 1–2 зірки чекають перевірки власниці.
 create table if not exists public.suptelia_reviews (
   id         bigint generated always as identity primary key,
   name       text not null check (char_length(name) between 1 and 40),
   rating     int  not null check (rating between 1 and 5),
   service    text,
   text       text not null check (char_length(text) between 1 and 800),
-  status     text not null default 'pending' check (status in ('pending','approved')),
+  status     text not null default 'approved' check (status in ('pending','approved')),
   created_at timestamptz not null default now()
 );
 
@@ -60,7 +60,7 @@ create policy "suptelia posts read"  on public.suptelia_posts for select using (
 create policy "suptelia posts write" on public.suptelia_posts for all
   using (public.suptelia_is_admin()) with check (public.suptelia_is_admin());
 
--- reviews: усі бачать схвалені; будь-хто може надіслати новий (тільки зі статусом pending);
+-- reviews: усі бачать опубліковані; будь-хто може надіслати новий (статус ставить тригер за оцінкою);
 -- адмін бачить і змінює все
 drop policy if exists "suptelia reviews read"   on public.suptelia_reviews;
 drop policy if exists "suptelia reviews insert" on public.suptelia_reviews;
@@ -69,7 +69,7 @@ drop policy if exists "suptelia reviews delete" on public.suptelia_reviews;
 create policy "suptelia reviews read"   on public.suptelia_reviews for select
   using (status = 'approved' or public.suptelia_is_admin());
 create policy "suptelia reviews insert" on public.suptelia_reviews for insert
-  with check (status = 'pending');
+  with check (status = case when rating >= 3 then 'approved' else 'pending' end);
 create policy "suptelia reviews update" on public.suptelia_reviews for update
   using (public.suptelia_is_admin()) with check (public.suptelia_is_admin());
 create policy "suptelia reviews delete" on public.suptelia_reviews for delete
@@ -95,3 +95,14 @@ insert into public.suptelia_settings (key, value) values
     'На кожному візиті підбираю форму під обличчя, колір під тон шкіри й волосся та розповідаю, як доглядати за бровами вдома.' || chr(10) || chr(10) ||
     'Чекаю вас у затишному кабінеті на вул. Дашковича.'))
 on conflict (key) do nothing;
+
+-- Статус нового відгуку визначає сервер: 3–5 зірок одразу на сайті, 1–2 зірки на перевірку.
+create or replace function public.suptelia_review_status() returns trigger
+language plpgsql as $$
+begin
+  new.status := case when new.rating >= 3 then 'approved' else 'pending' end;
+  return new;
+end $$;
+drop trigger if exists suptelia_review_status on public.suptelia_reviews;
+create trigger suptelia_review_status before insert on public.suptelia_reviews
+  for each row execute function public.suptelia_review_status();

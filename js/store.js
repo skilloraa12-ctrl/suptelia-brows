@@ -38,7 +38,7 @@
       const r = (read().reviews || []).slice().reverse();
       return all ? r : r.filter((x) => x.status === 'approved');
     },
-    async addReview(rv) { const d = read(); d.reviews = d.reviews || []; d.reviews.push({ ...rv, id: Date.now(), status: 'pending', created_at: new Date().toISOString() }); write(d); },
+    async addReview(rv) { const d = read(); d.reviews = d.reviews || []; d.reviews.push({ ...rv, id: Date.now(), status: rv.rating >= 3 ? 'approved' : 'pending', created_at: new Date().toISOString() }); write(d); },
     async setReviewStatus(id, status) { const d = read(); (d.reviews || []).forEach((r) => { if (r.id == id) r.status = status; }); write(d); },
     async deleteReview(id) { const d = read(); d.reviews = (d.reviews || []).filter((r) => r.id != id); write(d); },
     loginLabel: 'Логін',

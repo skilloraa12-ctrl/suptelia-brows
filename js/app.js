@@ -82,7 +82,7 @@
     try {
       await store.addReview(rv);
       e.target.reset(); $('#r5').checked = true;
-      $('#rvOk').textContent = 'Дякуємо! Відгук з\'явиться на сайті після перевірки майстром.';
+      if (rv.rating >= 3) { $('#rvOk').textContent = 'Дякуємо! Ваш відгук опубліковано.'; renderReviews(); } else { $('#rvOk').textContent = 'Дякуємо за чесний відгук! Майстер прочитає його найближчим часом.'; }
     } catch (err) { $('#rvOk').textContent = 'Не вдалося надіслати відгук. Спробуйте ще раз трохи пізніше.'; }
     btn.disabled = false;
   };
@@ -190,8 +190,8 @@
     if (!list.length) { w.innerHTML = '<p class="hint">Відгуків поки немає.</p>'; return; }
     w.innerHTML = list.map((r) => `<div class="arv"><div class="top"><b>${esc(r.name)} · ${stars(r.rating)}</b><span class="st ${r.status}">${r.status === 'approved' ? 'на сайті' : 'чекає перевірки'}</span></div>
       <div>${esc(r.text)}</div><div class="hint">${r.service ? esc(r.service) + ' · ' : ''}${date(r.created_at)}</div>
-      <div class="acts">${r.status === 'approved' ? `<button data-st="pending" data-id="${r.id}">Сховати з сайту</button>` : `<button data-st="approved" data-id="${r.id}">Схвалити</button>`}<button data-rm="${r.id}">Видалити</button></div></div>`).join('');
-    w.querySelectorAll('[data-st]').forEach((b) => (b.onclick = async () => { await store.setReviewStatus(b.dataset.id, b.dataset.st); renderAdminReviews(); renderReviews(); toast(b.dataset.st === 'approved' ? 'Відгук на сайті' : 'Відгук сховано'); }));
+      <div class="acts">${r.status === 'approved' ? `<button data-st="pending" data-id="${r.id}">Сховати з сайту</button>` : `<button data-st="approved" data-id="${r.id}">Опублікувати</button>`}<button data-rm="${r.id}">Видалити</button></div></div>`).join('');
+    w.querySelectorAll('[data-st]').forEach((b) => (b.onclick = async () => { await store.setReviewStatus(b.dataset.id, b.dataset.st); renderAdminReviews(); renderReviews(); toast(b.dataset.st === 'approved' ? 'Відгук опубліковано' : 'Відгук сховано з сайту'); }));
     w.querySelectorAll('[data-rm]').forEach((b) => (b.onclick = async () => { await store.deleteReview(b.dataset.rm); renderAdminReviews(); renderReviews(); toast('Видалено'); }));
   }
 

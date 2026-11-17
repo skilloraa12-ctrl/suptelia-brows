@@ -2,6 +2,8 @@
   const C = window.SITE_CONFIG, store = window.store;
   const $ = (s) => document.querySelector(s), $$ = (s) => [...document.querySelectorAll(s)];
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  // виконує дію адміна і показує зрозумілу помилку замість тиші
+  async function safe(fn) { try { await fn(); } catch (e) { toast('Не вдалося: ' + (e.message || 'помилка мережі') + '. Можливо, сесія завершилась — увійдіть ще раз.'); } }
   function toast(t) { const el = document.createElement('div'); el.className = 'toast'; el.textContent = t; document.body.appendChild(el); setTimeout(() => el.remove(), 2600); }
 
   const state = (window.SITE_STATE = { price: [], about: '', posts: [] });
@@ -14,6 +16,7 @@
     $('#burger').setAttribute('aria-expanded', open);
     $('#burger').setAttribute('aria-label', open ? 'Закрити меню' : 'Відкрити меню');
     $('#menu').setAttribute('aria-hidden', !open);
+    $('#menu').inert = !open;
   }
   $('#burger').onclick = () => setMenu(!document.body.classList.contains('menu-open'));
   $$('#menu a').forEach((a) => (a.onclick = () => setMenu(false)));
@@ -47,7 +50,7 @@
     let list = [];
     try { list = await store.getReviews(false); } catch (e) {}
     $('#rvList').innerHTML = list.length
-      ? list.map((r) => `<article class="rv"><span class="stars" aria-label="Оцінка ${r.rating} з 5">${stars(r.rating)}</span><p>${esc(r.text)}</p><span class="meta">${esc(r.name)}${r.service ? ' · ' + esc(r.service) : ''} · ${date(r.created_at)}</span></article>`).join('')
+      ? list.map((r) => `<article class="rv"><span class="stars" aria-label="Оцінка ${r.rating} з 5">${stars(Math.max(1, Math.min(5, Number(r.rating) || 0)))}</span><p>${esc(r.text)}</p><span class="meta">${esc(r.name)}${r.service ? ' · ' + esc(r.service) : ''} · ${date(r.created_at)}</span></article>`).join('')
       : '<div class="rv-empty">Тут з\'являться відгуки клієнток. Будьте першою: розкажіть, як вам результат.</div>';
   }
 
@@ -74,16 +77,20 @@
   $('#routeLink').href = `https://www.google.com/maps/dir/?api=1&destination=${q}`;
 
   // відгук
+  let lastReview = 0;
   $('#rvForm').onsubmit = async (e) => {
     e.preventDefault();
     const rv = { name: $('#rvName').value.trim(), rating: +document.querySelector('input[name=rate]:checked').value, service: $('#rvService').value, text: $('#rvText').value.trim() };
     if (!rv.name || !rv.text) return;
+    if ($('#rvWebsite').value) { e.target.reset(); return; } // пастка для ботів
+    if (Date.now() - lastReview < 60000) { $('#rvOk').textContent = 'Ви щойно надіслали відгук. Наступний можна буде надіслати за хвилину.'; return; }
     const btn = e.target.querySelector('button[type=submit]'); btn.disabled = true;
     try {
       await store.addReview(rv);
+      lastReview = Date.now();
       e.target.reset(); $('#r5').checked = true;
       if (rv.rating >= 3) { $('#rvOk').textContent = 'Дякуємо! Ваш відгук опубліковано.'; renderReviews(); } else { $('#rvOk').textContent = 'Дякуємо за чесний відгук! Майстер прочитає його найближчим часом.'; }
-    } catch (err) { $('#rvOk').textContent = 'Не вдалося надіслати відгук. Спробуйте ще раз трохи пізніше.'; }
+    } catch (err) { $('#rvOk').textContent = /Забагато/.test(err.message) ? err.message : 'Не вдалося надіслати відгук. Спробуйте ще раз трохи пізніше.'; }
     btn.disabled = false;
   };
 
@@ -178,8 +185,8 @@
   function renderPosts() {
     const l = $('#postsList');
     if (!state.posts.length) { l.innerHTML = '<p class="hint">Поки що немає власних публікацій. Створіть першу у вкладці «Шаблони».</p>'; return; }
-    l.innerHTML = state.posts.map((p) => `<figure><img src="${esc(p.src)}" alt=""><figcaption>${p.type === 'ba' ? 'до / після' : 'фото'}<button data-del="${p.id}">Видалити</button></figcaption></figure>`).join('');
-    l.querySelectorAll('[data-del]').forEach((b) => (b.onclick = async () => { await store.deletePost(b.dataset.del); state.posts = await store.getPosts(); renderPosts(); renderRails(); toast('Видалено'); }));
+    l.innerHTML = state.posts.map((p) => `<figure><img src="${esc(p.src)}" alt=""><figcaption>${p.type === 'ba' ? 'до / після' : 'фото'}<button data-del="${Number(p.id) || esc(p.id)}">Видалити</button></figcaption></figure>`).join('');
+    l.querySelectorAll('[data-del]').forEach((b) => (b.onclick = () => safe(async () => { await store.deletePost(b.dataset.del); state.posts = await store.getPosts(); renderPosts(); renderRails(); toast('Видалено'); })));
   }
 
   async function renderAdminReviews() {
@@ -188,11 +195,11 @@
     const pending = list.filter((r) => r.status === 'pending').length;
     $('#rvBadge').textContent = pending ? `(${pending})` : '';
     if (!list.length) { w.innerHTML = '<p class="hint">Відгуків поки немає.</p>'; return; }
-    w.innerHTML = list.map((r) => `<div class="arv"><div class="top"><b>${esc(r.name)} · ${stars(r.rating)}</b><span class="st ${r.status}">${r.status === 'approved' ? 'на сайті' : 'чекає перевірки'}</span></div>
+    w.innerHTML = list.map((r) => `<div class="arv"><div class="top"><b>${esc(r.name)} · ${stars(Math.max(1, Math.min(5, Number(r.rating) || 0)))}</b><span class="st ${r.status === 'approved' ? 'approved' : 'pending'}">${r.status === 'approved' ? 'на сайті' : 'чекає перевірки'}</span></div>
       <div>${esc(r.text)}</div><div class="hint">${r.service ? esc(r.service) + ' · ' : ''}${date(r.created_at)}</div>
-      <div class="acts">${r.status === 'approved' ? `<button data-st="pending" data-id="${r.id}">Сховати з сайту</button>` : `<button data-st="approved" data-id="${r.id}">Опублікувати</button>`}<button data-rm="${r.id}">Видалити</button></div></div>`).join('');
-    w.querySelectorAll('[data-st]').forEach((b) => (b.onclick = async () => { await store.setReviewStatus(b.dataset.id, b.dataset.st); renderAdminReviews(); renderReviews(); toast(b.dataset.st === 'approved' ? 'Відгук опубліковано' : 'Відгук сховано з сайту'); }));
-    w.querySelectorAll('[data-rm]').forEach((b) => (b.onclick = async () => { await store.deleteReview(b.dataset.rm); renderAdminReviews(); renderReviews(); toast('Видалено'); }));
+      <div class="acts">${r.status === 'approved' ? `<button data-st="pending" data-id="${Number(r.id)}">Сховати з сайту</button>` : `<button data-st="approved" data-id="${Number(r.id)}">Опублікувати</button>`}<button data-rm="${Number(r.id)}">Видалити</button></div></div>`).join('');
+    w.querySelectorAll('[data-st]').forEach((b) => (b.onclick = () => safe(async () => { await store.setReviewStatus(b.dataset.id, b.dataset.st); renderAdminReviews(); renderReviews(); toast(b.dataset.st === 'approved' ? 'Відгук опубліковано' : 'Відгук сховано з сайту'); })));
+    w.querySelectorAll('[data-rm]').forEach((b) => (b.onclick = () => safe(async () => { await store.deleteReview(b.dataset.rm); renderAdminReviews(); renderReviews(); toast('Видалено'); })));
   }
 
   function renderPriceEdit() {

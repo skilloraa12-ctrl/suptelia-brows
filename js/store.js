@@ -68,7 +68,8 @@
       const path = `${type}/${Date.now()}.jpg`;
       must(await sb.storage.from('suptelia-posts').upload(path, blob, { contentType: 'image/jpeg' }));
       const url = sb.storage.from('suptelia-posts').getPublicUrl(path).data.publicUrl;
-      must(await sb.from('suptelia_posts').insert({ type, image_url: url, storage_path: path }));
+      const { error } = await sb.from('suptelia_posts').insert({ type, image_url: url, storage_path: path });
+      if (error) { await sb.storage.from('suptelia-posts').remove([path]); throw new Error(error.message); } // не лишаємо «сиріт»
     },
     async deletePost(id) {
       const row = must(await sb.from('suptelia_posts').select('storage_path').eq('id', id).single());

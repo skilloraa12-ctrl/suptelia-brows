@@ -240,3 +240,6 @@ footer .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:16px;
 .bot form{display:flex;gap:8px;padding:12px;border-top:1px solid var(--line)}
 .bot form input{flex:1;min-width:0;font:inherit;font-size:16px;border:1px solid var(--line);border-radius:999px;padding:10px 14px;background:var(--white)}
 .bot form button{border:0;background:var(--ink);color:#fff;border-radius:999px;padding:0 16px;font-weight:600}
+
+/* пастка для спам-ботів у формі відгуків */
+.hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}

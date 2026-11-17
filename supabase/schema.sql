@@ -96,13 +96,4 @@ insert into public.suptelia_settings (key, value) values
     'Чекаю вас у затишному кабінеті на вул. Дашковича.'))
 on conflict (key) do nothing;
 
--- Статус нового відгуку визначає сервер: 3–5 зірок одразу на сайті, 1–2 зірки на перевірку.
-create or replace function public.suptelia_review_status() returns trigger
-language plpgsql as $$
-begin
-  new.status := case when new.rating >= 3 then 'approved' else 'pending' end;
-  return new;
-end $$;
-drop trigger if exists suptelia_review_status on public.suptelia_reviews;
-create trigger suptelia_review_status before insert on public.suptelia_reviews
-  for each row execute function public.suptelia_review_status();
+-- Тригер відгуків, обмеження та ліміти сховища: див. supabase/security-update.sql (запустіть після цього файлу).

@@ -3,7 +3,8 @@
   const C = window.SITE_CONFIG;
   const price = () => (window.SITE_STATE && window.SITE_STATE.price) || [];
   const priceOf = (re) => price().find(([n]) => re.test(n.toLowerCase()));
-  const fmt = (p) => p ? `${p[0]} — ${p[1]} грн` : '';
+  const esc = (t) => String(t).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const fmt = (p) => p ? `${esc(p[0])} — ${Number(p[1]) || 0} грн` : '';
   const BOOK = `Записатися можна в Direct: <a href="https://ig.me/m/${C.instagram}" target="_blank" rel="noopener">@${C.instagram}</a> або за телефоном ${C.phone}.`;
   const INDIVIDUAL = 'Склад і відтінок підбираються для кожної клієнтки індивідуально, після консультації з майстром.';
 

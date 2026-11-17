@@ -3,11 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https://rheeoeeewtucppooyvcb.supabase.co; media-src 'self'; connect-src https://rheeoeeewtucppooyvcb.supabase.co wss://rheeoeeewtucppooyvcb.supabase.co; frame-src https://maps.google.com https://www.google.com; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <title>suptelia.brows — архітектура брів</title>
 <meta name="description" content="suptelia.brows: корекція, фарбування і ламінування брів. вул. Дашковича 20, 4 поверх, кабінет 401. Запис: 093 393 58 57.">
 <meta property="og:title" content="suptelia.brows — архітектура брів">
 <meta property="og:description" content="Корекція, фарбування і ламінування брів. Запис у Direct або за телефоном 093 393 58 57.">
-<meta property="og:image" content="assets/work/photo-13.jpg">
+<meta property="og:image" content="https://skilloraa12-ctrl.github.io/suptelia-brows/assets/work/photo-13.jpg">
+<meta property="og:url" content="https://skilloraa12-ctrl.github.io/suptelia-brows/">
 <meta name="theme-color" content="#F3EEEA">
 <link rel="icon" href="assets/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -31,7 +34,7 @@
   </div>
 </header>
 
-<div class="menu" id="menu" aria-hidden="true">
+<div class="menu" id="menu" aria-hidden="true" inert>
   <nav>
     <a href="#price">Прайс <small>01</small></a>
     <a href="#photo">Фото <small>02</small></a>
@@ -124,7 +127,8 @@
         <div class="rv-list" id="rvList"></div>
         <form class="rv-form" id="rvForm">
           <h3>Залишити відгук</h3>
-          <label class="field" for="rvName">Ваше ім'я<input id="rvName" maxlength="40" required></label>
+          <label class="field" for="rvName">Ваше ім'я<input id="rvName" maxlength="40" required autocomplete="given-name"></label>
+          <div class="hp" aria-hidden="true"><label for="rvWebsite">Сайт</label><input id="rvWebsite" tabindex="-1" autocomplete="off"></div>
           <div class="field"><span>Оцінка</span>
             <div class="rate" role="radiogroup" aria-label="Оцінка">
               <input type="radio" name="rate" id="r5" value="5" checked><label for="r5" aria-label="5">★</label>
@@ -296,7 +300,7 @@
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="js/vendor/supabase-2.45.4.js"></script>
 <script src="js/config.js"></script>
 <script src="js/store.js"></script>
 <script src="js/bot.js"></script>
